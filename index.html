@@ -1,0 +1,2486 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نبتة | منصة زراعية ذكية لخدمة الفلاح المصري</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f1f8f3',
+                            100: '#ddeff0',
+                            500: '#2E7D32',
+                            600: '#246327',
+                            700: '#1b4d1e',
+                            800: '#133a16',
+                            900: '#0b2212', // Dark background sidebar
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts for Cairo & Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Tajawal:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome & Lucide Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+        }
+
+        /* Custom scrollbar for premium look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2E7D32;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-[#f8faf9] dark:bg-[#0f1a14] text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-200">
+
+    <!-- APP CONTAINER -->
+    <div id="app" class="flex flex-col min-h-screen">
+
+        <!-- FORCE LOGIN PORTAL (Displayed as main overlay first, prevents access until logged in) -->
+        <div id="auth-portal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-[#07130c] backdrop-blur-lg p-4 overflow-y-auto">
+            <div
+                class="bg-white dark:bg-[#15241b] rounded-2xl shadow-2xl p-8 max-w-md w-full border border-gray-100 dark:border-brand-800 relative my-auto">
+
+                <div class="text-center mb-6">
+                    <div
+                        class="inline-flex items-center justify-center p-3 bg-brand-50 dark:bg-brand-900 text-brand-500 rounded-full mb-3">
+                        <i class="fa-solid fa-leaf text-4xl animate-bounce"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">منصة نبتة الذكية</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">بوابة الفلاح المصري والذكاء الاصطناعي
+                        الزراعي</p>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-100 dark:border-gray-700 mb-6">
+                    <button id="tab-login" onclick="switchAuthTab('login')"
+                        class="flex-1 pb-3 text-center border-b-2 border-brand-500 text-brand-500 font-semibold">تسجيل
+                        الدخول</button>
+                    <button id="tab-register" onclick="switchAuthTab('register')"
+                        class="flex-1 pb-3 text-center border-b-2 border-transparent text-gray-400 font-semibold">حساب
+                        جديد</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="form-login" onsubmit="handleAuthSubmit(event, 'login')" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">البريد الإلكتروني أو رقم الهاتف</label>
+                        <div class="relative">
+                            <input type="text" id="login-id" required
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-brand-800 bg-gray-50 dark:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-right text-sm"
+                                placeholder="أدخل رقمك أو البريد">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400"><i
+                                    class="fa-solid fa-phone-flip text-xs"></i></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">كلمة المرور</label>
+                        <div class="relative">
+                            <input type="password" id="login-pass" required
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-brand-800 bg-gray-50 dark:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-right text-sm"
+                                placeholder="••••••••">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400"><i
+                                    class="fa-solid fa-lock text-xs"></i></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs mt-2">
+                        <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                            <input type="checkbox" checked class="rounded text-brand-500 focus:ring-brand-500">
+                            <span>تذكرني على هذا الجهاز</span>
+                        </label>
+                        <a href="#" onclick="showForgotPassword()" class="text-brand-500 hover:underline">نسيت كلمة
+                            المرور؟</a>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-bold transition duration-200 flex items-center justify-center gap-2 text-sm shadow-lg shadow-brand-500/20">
+                        <span>دخول للمنصة الزراعية</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="form-register" onsubmit="handleAuthSubmit(event, 'register')" class="space-y-4 hidden">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">الاسم الأول</label>
+                            <input type="text" id="reg-firstname" required
+                                class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-800 bg-gray-50 dark:bg-brand-900 focus:outline-none text-right text-sm"
+                                placeholder="أحمد">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">اسم العائلة</label>
+                            <input type="text" id="reg-lastname" required
+                                class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-800 bg-gray-50 dark:bg-brand-900 focus:outline-none text-right text-sm"
+                                placeholder="جمال">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">نوع الحساب زراعي</label>
+                        <select id="reg-usertype"
+                            class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-brand-800 bg-gray-50 dark:bg-brand-900 focus:outline-none text-right text-xs">
+                            <option value="farmer">فلاح / مزارع</option>
+                            <option value="owner" selected>صاحب مزرعة أو مستثمر</option>
+                            <option value="engineer">مهندس زراعي استشاري</option>
+                            <option value="company">شركة زراعية أو تاجر</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">رقم الهاتف المصري</label>
+                        <input type="tel" id="reg-phone" placeholder="012XXXXXXXX" required
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-brand-800 bg-gray-50 dark:bg-brand-900 focus:outline-none text-right text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">كلمة المرور</label>
+                        <input type="password" id="reg-pass" required
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-brand-800 bg-gray-50 dark:bg-brand-900 focus:outline-none text-right text-sm"
+                            placeholder="••••••••">
+                    </div>
+                    <button type="submit"
+                        class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-bold transition duration-200 text-sm">إنشاء
+                        حسابي والبدء</button>
+                </form>
+
+                <!-- Demo Access Quick Button -->
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 text-center">
+                    <button onclick="bypassAuth()"
+                        class="text-xs text-brand-600 dark:text-brand-400 hover:underline font-bold">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> الدخول السريع وتجربة المنصة مباشرة
+                    </button>
+                </div>
+
+                <!-- Feedback area -->
+                <p id="auth-feedback" class="text-center text-xs font-medium mt-4 text-red-500 hidden"></p>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT (Only fully interactive when authenticated) -->
+        <div class="flex flex-1 relative overflow-hidden">
+
+            <!-- RIGHT SIDEBAR (Premium Green / Black styling matching image_f14eff.png) -->
+            <aside id="sidebar"
+                class="fixed inset-y-0 right-0 z-40 w-72 bg-brand-900 text-white flex flex-col transform translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+
+                <!-- Sidebar Header -->
+                <div class="p-6 border-b border-brand-800/60 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center text-white text-xl font-bold">
+                            <i class="fa-solid fa-leaf"></i>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold block tracking-wide">نبتة</span>
+                            <span class="text-xs text-brand-400 block -mt-1">منصة زراعية ذكية</span>
+                        </div>
+                    </div>
+                    <!-- Close button for mobile -->
+                    <button onclick="toggleSidebar(false)" class="lg:hidden text-gray-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation List -->
+                <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                    <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-800/60 text-white border-l-4 border-brand-500 transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-chart-line text-lg"></i></span>
+                        <span class="font-medium">اللوحة الرئيسية</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('farms')" id="nav-farms"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-tractor text-lg"></i></span>
+                        <span class="font-medium">مزارعي</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('map')" id="nav-map"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-map-location-dot text-lg"></i></span>
+                        <span class="font-medium">الخريطة الزراعية</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('calculator')" id="nav-calculator"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-calculator text-lg"></i></span>
+                        <span class="font-medium">حاسبة التكاليف</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('assistant')" id="nav-assistant"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-regular fa-comment-dots text-lg"></i></span>
+                        <span class="font-medium">مساعد نبتة</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('diseases')" id="nav-diseases"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-microscope text-lg"></i></span>
+                        <span class="font-medium">تشخيص الأمراض</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('weather')" id="nav-weather"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-cloud-sun text-lg"></i></span>
+                        <span class="font-medium">الطقس</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('marketplace')" id="nav-marketplace"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-basket-shopping text-lg"></i></span>
+                        <span class="font-medium">السوق الزراعي</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('notifications')" id="nav-notifications"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center relative">
+                            <i class="fa-regular fa-bell text-lg"></i>
+                            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                        </span>
+                        <span class="font-medium">الإشعارات</span>
+                    </a>
+
+                    <a href="#" onclick="switchTab('settings')" id="nav-settings"
+                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-brand-800/40 hover:text-white transition-all duration-200">
+                        <span class="w-5 text-center"><i class="fa-solid fa-sliders text-lg"></i></span>
+                        <span class="font-medium">الإعدادات</span>
+                    </a>
+                </nav>
+
+                <!-- Sidebar Footer -->
+                <div class="p-4 border-t border-brand-800/60 bg-[#07170f]">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center text-brand-300">
+                            <i class="fa-regular fa-user text-lg"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <span id="sidebar-user-name" class="font-semibold block text-sm truncate">أحمد جمال</span>
+                            <span id="sidebar-user-role" class="text-xs text-brand-400 block truncate">مزارع
+                                معتمد</span>
+                        </div>
+                        <button onclick="logout()" title="تسجيل الخروج"
+                            class="text-gray-400 hover:text-red-400 transition">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT AREA -->
+            <main class="flex-1 min-h-screen lg:margin-right lg:mr-72 flex flex-col overflow-y-auto">
+
+                <!-- TOP HEADER BAR -->
+                <header
+                    class="bg-white dark:bg-[#121f18] border-b border-gray-100 dark:border-brand-900 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+
+                    <div class="flex items-center gap-4">
+                        <!-- Mobile menu trigger -->
+                        <button onclick="toggleSidebar(true)"
+                            class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-brand-900 rounded-lg">
+                            <i class="fa-solid fa-bars text-xl"></i>
+                        </button>
+
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400 text-sm block">أهلاً بك في منصة نبتة</span>
+                            <h1 id="welcome-message"
+                                class="text-lg lg:text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                                <span>مرحباً بك، أحمد جمال</span>
+                                <span class="wave">👋</span>
+                            </h1>
+                        </div>
+                    </div>
+
+                    <!-- Quick Tools & Theme Switcher -->
+                    <div class="flex items-center gap-3">
+                        <!-- Simulated Quick Farm Trigger -->
+                        <button onclick="switchTab('farms'); openAddFarmModal();"
+                            class="hidden sm:flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span>إضافة مزرعة جديدة</span>
+                        </button>
+
+                        <!-- Dark/Light Toggle -->
+                        <button onclick="toggleTheme()"
+                            class="w-10 h-10 rounded-xl bg-gray-50 dark:bg-brand-900 text-gray-600 dark:text-brand-300 flex items-center justify-center hover:bg-brand-50 transition">
+                            <i id="theme-icon" class="fa-regular fa-moon text-lg"></i>
+                        </button>
+
+                        <!-- Notifications Trigger -->
+                        <button onclick="switchTab('notifications')"
+                            class="relative w-10 h-10 rounded-xl bg-gray-50 dark:bg-brand-900 text-gray-600 dark:text-brand-300 flex items-center justify-center hover:bg-brand-50 transition">
+                            <i class="fa-regular fa-bell text-lg"></i>
+                            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+
+                        <!-- User Profile Indicator -->
+                        <div onclick="switchTab('settings')"
+                            class="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-600 dark:text-brand-300 flex items-center justify-center cursor-pointer font-bold border border-brand-200">
+                            أج
+                        </div>
+                    </div>
+                </header>
+
+                <!-- PAGE CONTENT WRAPPER -->
+                <div class="p-6 max-w-7xl w-full mx-auto space-y-6">
+
+                    <!-- ALERT TOAST CONTAINER -->
+                    <div id="toast"
+                        class="hidden fixed bottom-6 left-6 z-50 bg-[#1e293b]/95 backdrop-blur-md text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700 max-w-md animate-bounce">
+                        <div class="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white">
+                            <i id="toast-icon" class="fa-solid fa-check"></i>
+                        </div>
+                        <div>
+                            <span id="toast-title" class="font-bold block text-sm">تنبيه</span>
+                            <span id="toast-msg" class="text-xs text-gray-300">تم تحديث البيانات بنجاح</span>
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 1. TAB: DASHBOARD (اللوحة الرئيسية) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-dashboard" class="tab-pane space-y-6">
+                        <!-- Top Headline with Dynamic Summary -->
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">اللوحة
+                                    الرئيسية</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">نظرة عامة ومباشرة على نشاطاتك
+                                    الزراعية في مصر ومؤشرات الذكاء الاصطناعي</p>
+                            </div>
+                            <div
+                                class="flex items-center gap-2 bg-brand-50 dark:bg-brand-900/40 px-4 py-2 rounded-xl text-brand-700 dark:text-brand-300 text-sm font-semibold">
+                                <i class="fa-solid fa-calendar-day"></i>
+                                <span>الموسم الزراعي الحالي: صيف 2026</span>
+                            </div>
+                        </div>
+
+                        <!-- KPI Summary Cards (Matching Image design perfectly) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Card 1: Total Farms -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 dark:text-gray-500 font-bold text-sm">إجمالي
+                                        المزارع</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-brand-900 text-emerald-600 dark:text-brand-300 flex items-center justify-center"><i
+                                            class="fa-solid fa-tractor text-sm"></i></span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 id="kpi-total-farms" class="text-3xl font-extrabold">2</h3>
+                                    <p id="kpi-total-area" class="text-xs text-gray-500 mt-1">بإجمالي مساحة 6 فدان</p>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Active Crops -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 dark:text-gray-500 font-bold text-sm">المحاصيل
+                                        النشطة</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-brand-900 text-emerald-600 dark:text-brand-300 flex items-center justify-center"><i
+                                            class="fa-solid fa-leaf text-sm"></i></span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 id="kpi-active-crops" class="text-3xl font-extrabold">2</h3>
+                                    <p class="text-xs text-emerald-500 mt-1"><i class="fa-solid fa-circle-check"></i>
+                                        تزرع حالياً بنجاح</p>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Expected Profit -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 dark:text-gray-500 font-bold text-sm">الأرباح
+                                        المتوقعة</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-brand-900 text-emerald-600 dark:text-brand-300 flex items-center justify-center"><i
+                                            class="fa-solid fa-sack-dollar text-sm"></i></span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 id="kpi-expected-profit" class="text-3xl font-extrabold">142,500 ج.م</h3>
+                                    <p class="text-xs text-gray-500 mt-1">لهذا الموسم الكلي</p>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Upcoming Irrigation Tasks -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 dark:text-gray-500 font-bold text-sm">مهام الري
+                                        القادمة</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-500 flex items-center justify-center"><i
+                                            class="fa-solid fa-droplet text-sm"></i></span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 id="kpi-irrigation-tasks" class="text-3xl font-extrabold">1</h3>
+                                    <p class="text-xs text-blue-500 mt-1">مهمة عاجلة غداً صباحاً</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Graphics Row -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                            <!-- Graph: Production Forecast & Revenue (Col-span 2) -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm lg:col-span-2">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h4 class="font-bold text-lg">توقعات الإنتاج والإيرادات</h4>
+                                        <p class="text-xs text-gray-400">تحليل متوقع للإنتاج والإيرادات خلال الأشهر
+                                            القادمة</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <span
+                                            class="text-xs bg-emerald-50 dark:bg-brand-900 text-brand-600 px-2 py-1 rounded">الإنتاج
+                                            بالطن</span>
+                                        <span
+                                            class="text-xs bg-blue-50 dark:bg-blue-950 text-blue-600 px-2 py-1 rounded">الأرباح
+                                            ج.م</span>
+                                    </div>
+                                </div>
+                                <div class="h-64 relative">
+                                    <canvas id="productionChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Graph: Crop Distribution -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm flex flex-col justify-between">
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">توزيع المحاصيل</h4>
+                                    <p class="text-xs text-gray-400 mb-4">نسبة المحاصيل المزروعة حالياً في مزارعك</p>
+                                </div>
+                                <div class="h-44 relative flex items-center justify-center">
+                                    <canvas id="cropChart"></canvas>
+                                </div>
+                                <div class="space-y-2 mt-4 text-xs">
+                                    <div class="flex justify-between items-center">
+                                        <span class="flex items-center gap-1.5"><span
+                                                class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span>قمح</span>
+                                        <span id="dist-wheat-pct" class="font-semibold">66.7%</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="flex items-center gap-1.5"><span
+                                                class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>طماطم</span>
+                                        <span id="dist-tomato-pct" class="font-semibold">33.3%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Agricultural Recommendation Prompt Center -->
+                        <div
+                            class="bg-gradient-to-r from-brand-600 to-emerald-700 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
+                            <div class="absolute -right-16 -bottom-16 w-44 h-44 bg-white/10 rounded-full blur-2xl">
+                            </div>
+                            <div class="relative z-10 max-w-2xl">
+                                <span
+                                    class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">نصيحة
+                                    الذكاء الاصطناعي اليوم</span>
+                                <h3 class="text-xl font-bold mt-3">توصية فورية من مساعد نبتة</h3>
+                                <p class="text-sm text-emerald-50 mt-2 leading-relaxed">بناءً على انخفاض درجات الحرارة
+                                    المتوقع الأسبوع المقبل في محافظة البحيرة، نوصي بتقليل وتيرة الري في حقل القمح وتجنب
+                                    وضع الأسمدة النيتروجينية حتى استقرار الأجواء.</p>
+                                <div class="mt-4 flex gap-2">
+                                    <button onclick="switchTab('assistant')"
+                                        class="bg-white text-brand-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-brand-50 transition">اسأل
+                                        المساعد الذكي</button>
+                                    <button onclick="switchTab('weather')"
+                                        class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl text-xs font-bold transition">تفاصيل
+                                        الطقس</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Crop Recommendation Engine Interface -->
+                        <div
+                            class="bg-white dark:bg-[#121f18] p-6 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm">
+                            <div class="mb-4">
+                                <h3 class="text-lg font-bold">محرك اقتراح المحاصيل الذكي</h3>
+                                <p class="text-xs text-gray-500">أدخل معايير تربتك ومزرعتك لنقترح لك المحاصيل الأكثر
+                                    ملائمة وربحية في مصر.</p>
+                            </div>
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 dark:bg-brand-900/30 p-4 rounded-xl">
+                                <div>
+                                    <label class="text-xs font-semibold block mb-1">نوع التربة</label>
+                                    <select id="rec-soil"
+                                        class="w-full text-xs p-2 rounded-lg border bg-white dark:bg-brand-900 text-gray-800 dark:text-white">
+                                        <option value="clay">تربة طينية (الدلتا والوادي)</option>
+                                        <option value="sandy">تربة رملية (أراضي مستصلحة)</option>
+                                        <option value="saline">تربة ملحية</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-semibold block mb-1">طريقة الري</label>
+                                    <select id="rec-irrigation"
+                                        class="w-full text-xs p-2 rounded-lg border bg-white dark:bg-brand-900 text-gray-800 dark:text-white">
+                                        <option value="drip">ري بالتنقيط</option>
+                                        <option value="sprinkler">ري بالرش</option>
+                                        <option value="flood">ري بالغمر التقليدي</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-semibold block mb-1">موسم الزراعة</label>
+                                    <select id="rec-season"
+                                        class="w-full text-xs p-2 rounded-lg border bg-white dark:bg-brand-900 text-gray-800 dark:text-white">
+                                        <option value="summer">الصيف</option>
+                                        <option value="winter">الشتاء</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end">
+                                    <button onclick="calculateRecommendation()"
+                                        class="w-full py-2 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-lg transition">استخلاص
+                                        المقترحات</button>
+                                </div>
+                            </div>
+
+                            <div id="rec-results-wrapper" class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Recommened card 1 -->
+                                <div
+                                    class="border border-brand-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-brand-50/20 dark:bg-brand-900/10">
+                                    <div
+                                        class="absolute top-2 left-2 bg-brand-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                                        نسبة ملائمة 94%</div>
+                                    <h4 class="font-bold text-brand-600 dark:text-brand-300">القمح (مصر 3)</h4>
+                                    <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 2.8 طن/فدان</p>
+                                    <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 22,000 ج.م /
+                                        فدان</p>
+                                    <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: منخفض</div>
+                                </div>
+                                <!-- Recommened card 2 -->
+                                <div
+                                    class="border border-gray-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-white dark:bg-brand-900/10">
+                                    <div
+                                        class="absolute top-2 left-2 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                                        نسبة ملائمة 86%</div>
+                                    <h4 class="font-bold text-amber-600">الفول البلدي</h4>
+                                    <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 1.5 طن/فدان</p>
+                                    <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 18,500 ج.م /
+                                        فدان</p>
+                                    <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: متوسط</div>
+                                </div>
+                                <!-- Recommened card 3 -->
+                                <div
+                                    class="border border-gray-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-white dark:bg-brand-900/10">
+                                    <div
+                                        class="absolute top-2 left-2 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                                        نسبة ملائمة 81%</div>
+                                    <h4 class="font-bold text-emerald-600">بنجر السكر</h4>
+                                    <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 22 طن/فدان</p>
+                                    <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 16,000 ج.م /
+                                        فدان</p>
+                                    <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: منخفض</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 2. TAB: MY FARMS (إدارة مزارعي) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-farms" class="tab-pane hidden space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">مزارعي</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">إدارة ومتابعة أراضيك الزراعية بدقة
+                                    للحصول على التوجيهات المناسبة</p>
+                            </div>
+                            <button onclick="openAddFarmModal()"
+                                class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>إضافة مزرعة جديدة</span>
+                            </button>
+                        </div>
+
+                        <!-- Add Farm Interactive Modal Modal -->
+                        <div id="add-farm-modal"
+                            class="hidden bg-white dark:bg-[#121f18] p-6 rounded-2xl border-2 border-brand-500 shadow-xl space-y-6">
+                            <div
+                                class="flex items-center justify-between border-b pb-3 border-gray-100 dark:border-brand-900">
+                                <h3 class="text-lg font-bold text-brand-600 dark:text-brand-300">إدخال بيانات المزرعة
+                                    بالتفصيل</h3>
+                                <button onclick="closeAddFarmModal()" class="text-gray-400 hover:text-red-500"><i
+                                        class="fa-solid fa-xmark text-lg"></i></button>
+                            </div>
+
+                            <form id="farm-form" onsubmit="handleSaveFarm(event)">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">اسم المزرعة</label>
+                                        <input type="text" id="farm-name" required placeholder="مثال: مزرعة الأمل"
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">المساحة (بالفدان)</label>
+                                        <input type="number" id="farm-area" required placeholder="1"
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">المحافظة</label>
+                                        <select id="farm-governorate"
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                            <option value="Alexandria">الإسكندرية</option>
+                                            <option value="Beheira" selected>البحيرة</option>
+                                            <option value="Dakahlia">الدقهلية</option>
+                                            <option value="Sharqia">الشرقية</option>
+                                            <option value="Minya">المنيا</option>
+                                            <option value="Sohag">سوهاج</option>
+                                            <option value="Qena">قنا</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">المركز / المدينة</label>
+                                        <input type="text" id="farm-city" placeholder="مثال: دمنهور"
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">نوع التربة</label>
+                                        <select id="farm-soil"
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                            <option value="طينية">طينية خصبة</option>
+                                            <option value="رملية">رملية مستصلحة</option>
+                                            <option value="ملحية">طينية ملحية</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">المحصول الحالي</label>
+                                        <select id="farm-crop"
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900 text-xs">
+                                            <option value="قمح">قمح بلدي</option>
+                                            <option value="طماطم">طماطم شتوية</option>
+                                            <option value="بطاطس">بطاطس صيفية</option>
+                                            <option value="ذرة">ذرة شامية</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end gap-3 mt-6">
+                                    <button type="button" onclick="closeAddFarmModal()"
+                                        class="px-5 py-2 rounded-xl bg-gray-100 dark:bg-brand-900 hover:bg-gray-200 text-xs">إلغاء</button>
+                                    <button type="submit"
+                                        class="px-5 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold">حفظ
+                                        المزرعة</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Farms List Grid -->
+                        <div id="farms-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Populated dynamically or statically for demo -->
+                            <!-- Farm 1 -->
+                            <div class="bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden p-6 relative"
+                                data-id="1">
+                                <span
+                                    class="absolute top-4 left-4 bg-emerald-50 text-emerald-600 text-xs px-2.5 py-1 rounded-full font-bold">مروية
+                                    بنجاح</span>
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">مزرعة البحيرة الكبرى</h3>
+                                <div class="grid grid-cols-2 gap-4 mt-4 text-xs">
+                                    <div>
+                                        <span class="text-gray-400 block">المساحة:</span>
+                                        <span class="font-bold text-sm">4 فدان</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block">المحافظة:</span>
+                                        <span class="font-bold text-sm">البحيرة (دمنهور)</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block">نوع التربة:</span>
+                                        <span class="font-bold text-sm">طينية خصبة</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block">المحصول الحالي:</span>
+                                        <span class="font-bold text-sm text-brand-600">قمح</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="mt-6 pt-4 border-t border-gray-50 dark:border-brand-900/40 flex justify-between gap-2">
+                                    <button onclick="switchTab('weather')"
+                                        class="text-xs text-brand-600 hover:underline"><i
+                                            class="fa-solid fa-cloud-sun mr-1"></i> طقس المزرعة</button>
+                                    <button onclick="openCalcForFarm(1)"
+                                        class="text-xs text-brand-600 hover:underline"><i
+                                            class="fa-solid fa-calculator mr-1"></i> حساب الأرباح والتكاليف</button>
+                                    <button class="text-xs text-red-500 hover:underline"
+                                        onclick="deleteFarm(this, 1)"><i class="fa-regular fa-trash-can"></i>
+                                        حذف</button>
+                                </div>
+                            </div>
+
+                            <!-- Farm 2 -->
+                            <div class="bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden p-6 relative"
+                                data-id="2">
+                                <span
+                                    class="absolute top-4 left-4 bg-amber-50 text-amber-600 text-xs px-2.5 py-1 rounded-full font-bold">بحاجة
+                                    لري قريباً</span>
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">أرض الطماطم الغربية</h3>
+                                <div class="grid grid-cols-2 gap-4 mt-4 text-xs">
+                                    <div>
+                                        <span class="text-gray-400 block">المساحة:</span>
+                                        <span class="font-bold text-sm">2 فدان</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block">المحافظة:</span>
+                                        <span class="font-bold text-sm">الغربية (طنطا)</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block">نوع التربة:</span>
+                                        <span class="font-bold text-sm">طينية مختلطة</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block">المحصول الحالي:</span>
+                                        <span class="font-bold text-sm text-amber-600">طماطم</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="mt-6 pt-4 border-t border-gray-50 dark:border-brand-900/40 flex justify-between gap-2">
+                                    <button onclick="switchTab('weather')"
+                                        class="text-xs text-brand-600 hover:underline"><i
+                                            class="fa-solid fa-cloud-sun mr-1"></i> طقس المزرعة</button>
+                                    <button onclick="openCalcForFarm(2)"
+                                        class="text-xs text-brand-600 hover:underline"><i
+                                            class="fa-solid fa-calculator mr-1"></i> حساب الأرباح والتكاليف</button>
+                                    <button class="text-xs text-red-500 hover:underline"
+                                        onclick="deleteFarm(this, 2)"><i class="fa-regular fa-trash-can"></i>
+                                        حذف</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 3. TAB: EGYPT MAP (الخريطة الزراعية التفاعلية) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-map" class="tab-pane hidden space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">الخريطة الزراعية لمصر</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">استكشف الإنتاجية، المحاصيل والمياه لكل
+                                محافظة بالضغط على الأزرار أدناه</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                            <!-- Interactive Map Interface (SVG Representation) -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm lg:col-span-2 flex flex-col justify-between">
+                                <h3 class="font-bold text-md text-brand-600 dark:text-brand-300 mb-4">خريطة مصر الزراعية
+                                    التفاعلية</h3>
+
+                                <!-- Simulating the SVG/Interactive Visual Egypt Map exactly as pictured -->
+                                <div
+                                    class="relative bg-slate-50 dark:bg-brand-950/40 rounded-xl p-8 border border-dashed border-gray-200 dark:border-brand-800 flex items-center justify-center h-96">
+                                    <!-- River Nile & Delta Vector Schematic Design -->
+                                    <svg viewBox="0 0 400 400" class="w-full h-full max-h-[350px]">
+                                        <!-- Sea Coast -->
+                                        <path d="M 50,50 Q 200,80 350,50" fill="none" stroke="#2563eb" stroke-width="6"
+                                            stroke-linecap="round" class="opacity-40" />
+                                        <!-- Nile Delta V Shape -->
+                                        <path d="M 180,180 L 130,50 M 180,180 L 230,50 M 180,180 L 180,50" fill="none"
+                                            stroke="#3b82f6" stroke-width="4" />
+                                        <!-- Nile River Body -->
+                                        <path d="M 180,180 Q 210,230 180,280 T 190,380" fill="none" stroke="#2563eb"
+                                            stroke-width="5" stroke-linecap="round" />
+
+                                        <!-- Governorate Buttons / Bubbles -->
+                                        <!-- Alexandria (الإسكندرية) -->
+                                        <g class="cursor-pointer" onclick="selectGovernorate('Alexandria')">
+                                            <circle cx="100" cy="65" r="14" fill="#2e7d32"
+                                                class="animate-pulse hover:fill-emerald-600 transition" />
+                                            <text x="100" y="69" font-size="7" fill="white" font-weight="bold"
+                                                text-anchor="middle">الإسكندرية</text>
+                                        </g>
+                                        <!-- Beheira (البحيرة) -->
+                                        <g class="cursor-pointer" onclick="selectGovernorate('Beheira')">
+                                            <circle cx="130" cy="110" r="14" fill="#4caf50"
+                                                class="hover:fill-emerald-600 transition" />
+                                            <text x="130" y="114" font-size="8" fill="white" font-weight="bold"
+                                                text-anchor="middle">البحيرة</text>
+                                        </g>
+                                        <!-- Dakahlia (الدقهلية) -->
+                                        <g class="cursor-pointer" onclick="selectGovernorate('Dakahlia')">
+                                            <circle cx="210" cy="75" r="14" fill="#2e7d32"
+                                                class="hover:fill-emerald-600 transition" />
+                                            <text x="210" y="79" font-size="8" fill="white" font-weight="bold"
+                                                text-anchor="middle">الدقهلية</text>
+                                        </g>
+                                        <!-- Sharqia (الشرقية) -->
+                                        <g class="cursor-pointer" onclick="selectGovernorate('Sharqia')">
+                                            <circle cx="240" cy="115" r="14" fill="#4caf50"
+                                                class="hover:fill-emerald-600 transition" />
+                                            <text x="240" y="119" font-size="8" fill="white" font-weight="bold"
+                                                text-anchor="middle">الشرقية</text>
+                                        </g>
+                                        <!-- Minya (المنيا) -->
+                                        <g class="cursor-pointer" onclick="selectGovernorate('Minya')">
+                                            <circle cx="180" cy="240" r="14" fill="#f59e0b"
+                                                class="hover:fill-amber-600 transition" />
+                                            <text x="180" y="244" font-size="8" fill="white" font-weight="bold"
+                                                text-anchor="middle">المنيا</text>
+                                        </g>
+                                        <!-- Sohag (سوهاج) -->
+                                        <g class="cursor-pointer" onclick="selectGovernorate('Sohag')">
+                                            <circle cx="210" cy="300" r="14" fill="#10b981"
+                                                class="hover:fill-emerald-600 transition" />
+                                            <text x="210" y="304" font-size="8" fill="white" font-weight="bold"
+                                                text-anchor="middle">سوهاج</text>
+                                        </g>
+                                        <!-- Qena (قنا) -->
+                                        <g class="cursor-pointer" onclick="selectGovernorate('Qena')">
+                                            <circle cx="240" cy="350" r="14" fill="#2e7d32"
+                                                class="hover:fill-emerald-600 transition" />
+                                            <text x="240" y="354" font-size="8" fill="white" font-weight="bold"
+                                                text-anchor="middle">قنا</text>
+                                        </g>
+                                    </svg>
+
+                                    <!-- Legend inside Map -->
+                                    <div
+                                        class="absolute bottom-3 right-3 bg-white dark:bg-brand-900 p-2.5 rounded-lg text-[10px] space-y-1 shadow">
+                                        <div class="flex items-center gap-1"><span
+                                                class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>نهر
+                                            النيل والدلتا</div>
+                                        <div class="flex items-center gap-1"><span
+                                                class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>محافظات
+                                            زراعية كبرى</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detail Card based on Selected Governorate -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-start border-b pb-3 mb-4">
+                                        <div>
+                                            <h3 id="gov-name"
+                                                class="text-2xl font-extrabold text-brand-600 dark:text-brand-300">
+                                                البحيرة</h3>
+                                            <span id="gov-eng-name" class="text-xs text-gray-400">Beheira
+                                                Governorate</span>
+                                        </div>
+                                        <span
+                                            class="text-xs bg-emerald-50 dark:bg-brand-900 text-brand-600 px-2 py-1 rounded">نشطة
+                                            زراعياً</span>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <div>
+                                            <span class="text-xs text-gray-400 block"><i
+                                                    class="fa-solid fa-border-all mr-1"></i> المساحة الزراعية
+                                                التقريبية:</span>
+                                            <p id="gov-area" class="font-bold text-md text-gray-800 dark:text-white">1.2
+                                                million Feddans</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-400 block"><i
+                                                    class="fa-solid fa-temperature-half mr-1"></i> متوسط درجات
+                                                الحرارة:</span>
+                                            <p id="gov-temp" class="font-bold text-md text-gray-800 dark:text-white">22°
+                                                C</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-400 block"><i
+                                                    class="fa-solid fa-seedling mr-1"></i> المحاصيل الرئيسية
+                                                بالمنطقة:</span>
+                                            <div id="gov-crops" class="flex flex-wrap gap-1 mt-1">
+                                                <span
+                                                    class="bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-300 text-xs px-2.5 py-1 rounded-full">قمح</span>
+                                                <span
+                                                    class="bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-300 text-xs px-2.5 py-1 rounded-full">طماطم</span>
+                                                <span
+                                                    class="bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-300 text-xs px-2.5 py-1 rounded-full">بطاطس</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-400 block"><i
+                                                    class="fa-solid fa-droplet mr-1"></i> مصدر المياه الأساسي:</span>
+                                            <div id="gov-water" class="flex flex-wrap gap-1 mt-1">
+                                                <span
+                                                    class="bg-blue-50 dark:bg-blue-950 text-blue-600 text-xs px-2.5 py-1 rounded-full">ترعة
+                                                    المحمودية (نيل)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 pt-4 border-t border-gray-50 dark:border-brand-900/40">
+                                    <div
+                                        class="bg-amber-50 dark:bg-amber-950/40 p-3 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+                                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                                        <strong>تنبيه المحافظة:</strong>
+                                        <span id="gov-alert">احتمالية هبوب رياح ترابية خفيفة الأربعاء. يرجى تثبيت البيوت
+                                            البلاستيكية.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 4. TAB: CALCULATOR (حاسبة التكاليف والأرباح الذكية) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-calculator" class="tab-pane hidden space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">حاسبة التكاليف والأرباح الذكية
+                                بالربط مع مزارعي</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">اختر أحد مزارعك المسجلة وسيقوم النظام
+                                بسحب مساحتها ونوع محصولها مع جلب الأسعار اللحظية من الـ APIs الزراعية المعتمدة</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                            <!-- Input Panel -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-6 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm lg:col-span-2 space-y-4">
+                                <div
+                                    class="flex items-center justify-between border-b pb-3 border-gray-100 dark:border-brand-900">
+                                    <h3 class="font-bold text-md text-brand-600 dark:text-brand-300">ربط المزرعة وسحب
+                                        البيانات</h3>
+                                    <span
+                                        class="text-xs bg-emerald-100 text-emerald-800 dark:bg-brand-900 dark:text-brand-300 px-2 py-0.5 rounded-full font-semibold">تحديث
+                                        حي عبر الـ API</span>
+                                </div>
+
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-emerald-50/40 dark:bg-brand-950/40 p-4 rounded-xl border border-brand-100 dark:border-brand-900">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-brand-700 dark:text-brand-300 mb-1.5"><i
+                                                class="fa-solid fa-tree mr-1"></i> اختر المزرعة المراد حساب
+                                            أرباحها</label>
+                                        <select id="calc-farm-select" onchange="loadFarmDataIntoCalculator()"
+                                            class="w-full p-2.5 rounded-xl border-2 border-brand-500 bg-white dark:bg-brand-900 text-xs font-semibold">
+                                            <!-- Dynamic Farm list will be loaded here -->
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col justify-end">
+                                        <div class="text-[11px] text-gray-500 dark:text-gray-400">
+                                            <span class="block"><strong>مساحة المزرعة المسحوبة:</strong> <span
+                                                    id="calc-pulled-area"
+                                                    class="font-bold text-brand-600 dark:text-brand-300">4</span>
+                                                فدان</span>
+                                            <span class="block mt-1"><strong>المحصول المسجل المسحوب:</strong> <span
+                                                    id="calc-pulled-crop"
+                                                    class="font-bold text-brand-600 dark:text-brand-300">قمح</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h4 class="font-bold text-xs text-gray-400 mt-4 flex items-center justify-between">
+                                    <span>تفاصيل التكاليف المسحوبة للفدان الواحد من الـ API (بالجنيه المصري)</span>
+                                    <button onclick="fetchLatestAPIPrices()"
+                                        class="text-brand-600 dark:text-brand-400 hover:underline text-[10px]"><i
+                                            class="fa-solid fa-rotate mr-1 animate-spin"></i> إعادة تحديث
+                                        الأسعار</button>
+                                </h4>
+
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] text-gray-500 mb-1">البذور والتقاوي
+                                            (للفدان)</label>
+                                        <div class="relative">
+                                            <input type="number" id="cost-seeds"
+                                                class="w-full p-2 rounded-xl border text-xs dark:border-brand-800 bg-gray-50 dark:bg-brand-900 font-bold text-gray-700 dark:text-white">
+                                            <span class="absolute left-2 top-2 text-[9px] text-gray-400">ج.م</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-gray-500 mb-1">الأسمدة والمغذيات
+                                            (للفدان)</label>
+                                        <div class="relative">
+                                            <input type="number" id="cost-fertilizers"
+                                                class="w-full p-2 rounded-xl border text-xs dark:border-brand-800 bg-gray-50 dark:bg-brand-900 font-bold text-gray-700 dark:text-white">
+                                            <span class="absolute left-2 top-2 text-[9px] text-gray-400">ج.م</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-gray-500 mb-1">المبيدات والوقاية
+                                            (للفدان)</label>
+                                        <div class="relative">
+                                            <input type="number" id="cost-pesticides"
+                                                class="w-full p-2 rounded-xl border text-xs dark:border-brand-800 bg-gray-50 dark:bg-brand-900 font-bold text-gray-700 dark:text-white">
+                                            <span class="absolute left-2 top-2 text-[9px] text-gray-400">ج.م</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-gray-500 mb-1">تكلفة الري والطاقة
+                                            (للفدان)</label>
+                                        <div class="relative">
+                                            <input type="number" id="cost-irrigation"
+                                                class="w-full p-2 rounded-xl border text-xs dark:border-brand-800 bg-gray-50 dark:bg-brand-900 font-bold text-gray-700 dark:text-white">
+                                            <span class="absolute left-2 top-2 text-[9px] text-gray-400">ج.م</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-gray-500 mb-1">العمالة (للفدان)</label>
+                                        <div class="relative">
+                                            <input type="number" id="cost-labor"
+                                                class="w-full p-2 rounded-xl border text-xs dark:border-brand-800 bg-gray-50 dark:bg-brand-900 font-bold text-gray-700 dark:text-white">
+                                            <span class="absolute left-2 top-2 text-[9px] text-gray-400">ج.م</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-gray-500 mb-1">النقل واللوجستيات
+                                            (للفدان)</label>
+                                        <div class="relative">
+                                            <input type="number" id="cost-transport"
+                                                class="w-full p-2 rounded-xl border text-xs dark:border-brand-800 bg-gray-50 dark:bg-brand-900 font-bold text-gray-700 dark:text-white">
+                                            <span class="absolute left-2 top-2 text-[9px] text-gray-400">ج.م</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button onclick="calculateCostProfit()"
+                                        class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-calculator"></i>
+                                        <span>احسب أرباح المزرعة بناءً على الأسعار المسحوبة</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Results KPI Panel -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-6 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm space-y-4">
+                                <h3 class="font-bold text-md text-brand-600 dark:text-brand-300">التقرير المالي المتوقع
+                                    للمزرعة</h3>
+
+                                <div class="space-y-3">
+                                    <div
+                                        class="p-4 bg-gray-50 dark:bg-brand-900/40 rounded-xl flex justify-between items-center">
+                                        <span class="text-xs text-gray-400">إجمالي التكاليف للمساحة كاملة:</span>
+                                        <span id="res-total-cost" class="font-extrabold text-md text-red-500">0
+                                            ج.م</span>
+                                    </div>
+                                    <div
+                                        class="p-4 bg-gray-50 dark:bg-brand-900/40 rounded-xl flex justify-between items-center">
+                                        <span class="text-xs text-gray-400">الإنتاج الكلي المتوقع:</span>
+                                        <span id="res-expected-yield" class="font-extrabold text-md text-brand-500">0
+                                            طن</span>
+                                    </div>
+                                    <div
+                                        class="p-4 bg-gray-50 dark:bg-brand-900/40 rounded-xl flex justify-between items-center">
+                                        <span class="text-xs text-gray-400">إجمالي الإيرادات عند التوريد:</span>
+                                        <span id="res-total-revenue" class="font-extrabold text-md text-emerald-600">0
+                                            ج.م</span>
+                                    </div>
+                                    <div
+                                        class="p-4 bg-emerald-50 dark:bg-brand-900 rounded-xl flex justify-between items-center border border-brand-200">
+                                        <span class="text-xs text-brand-700 dark:text-brand-300 font-bold">صافي الأرباح
+                                            للمزرعة:</span>
+                                        <span id="res-net-profit" class="font-extrabold text-lg text-emerald-600">0
+                                            ج.م</span>
+                                    </div>
+                                    <div
+                                        class="p-4 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex justify-between items-center">
+                                        <span class="text-xs text-blue-700 dark:text-blue-300">العائد على الاستثمار
+                                            الكلي (ROI):</span>
+                                        <span id="res-roi" class="font-extrabold text-md text-blue-600">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 5. TAB: CHATBOT (مساعد نبتة الذكي) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-assistant" class="tab-pane hidden space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">مساعد نبتة الزراعي</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">اطرح أي سؤال زراعي وسيقوم مساعدنا الذكي
+                                بالرد عليك بالعامية المصرية وبإجابات دقيقة</p>
+                        </div>
+
+                        <!-- Chat Interface -->
+                        <div
+                            class="bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden flex flex-col h-[500px]">
+
+                            <!-- Chat Area Header -->
+                            <div
+                                class="p-4 bg-brand-50 dark:bg-brand-900/40 border-b border-gray-100 dark:border-brand-900 flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white text-lg">
+                                    <i class="fa-solid fa-seedling"></i>
+                                </div>
+                                <div>
+                                    <span class="font-bold block text-sm">مساعد نبتة الذكي</span>
+                                    <span
+                                        class="text-xs text-brand-600 dark:text-brand-300 flex items-center gap-1"><span
+                                            class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>متاح
+                                        حالياً للإجابة فوراً</span>
+                                </div>
+                            </div>
+
+                            <!-- Message Box (Scrollable) -->
+                            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4">
+                                <!-- Bot message -->
+                                <div class="flex items-start gap-3 max-w-[80%]">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs flex-shrink-0">
+                                        <i class="fa-solid fa-robot"></i>
+                                    </div>
+                                    <div
+                                        class="bg-brand-50 dark:bg-brand-900 p-3.5 rounded-2xl rounded-tr-none text-xs leading-relaxed">
+                                        أهلاً بيك يا باشمهندس! أنا مساعد نبتة الزراعي الذكي. تقدر تسألني عن أي حاجة بتخص
+                                        الزراعة، التسميد، مواعيد الري، أو أمراض النباتات في مصر. إسألني مثلاً: "أزرع
+                                        القمح امتى؟" أو "أوراق الطماطم عندي صفرا أعمل إيه؟"
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Suggested Questions Bar -->
+                            <div
+                                class="px-4 py-2 border-t border-gray-100 dark:border-brand-900 flex gap-2 overflow-x-auto text-[10px] bg-gray-50 dark:bg-brand-950/40">
+                                <button onclick="quickAsk('كيف أعالج المن في القمح؟')"
+                                    class="bg-white dark:bg-brand-900 border px-3 py-1.5 rounded-full hover:bg-brand-50 transition whitespace-nowrap">كيف
+                                    أعالج المن في القمح؟</button>
+                                <button onclick="quickAsk('متى أزرع الذرة الشامية هذا العام؟')"
+                                    class="bg-white dark:bg-brand-900 border px-3 py-1.5 rounded-full hover:bg-brand-50 transition whitespace-nowrap">متى
+                                    أزرع الذرة الشامية هذا العام؟</button>
+                                <button onclick="quickAsk('ما هي أفضل الأسمدة للبطاطس في التربة الرملية؟')"
+                                    class="bg-white dark:bg-brand-900 border px-3 py-1.5 rounded-full hover:bg-brand-50 transition whitespace-nowrap">ما
+                                    هي أفضل الأسمدة للبطاطس في التربة الرملية?</button>
+                            </div>
+
+                            <!-- Input Bar -->
+                            <div class="p-3 border-t border-gray-100 dark:border-brand-900 flex gap-2">
+                                <input type="text" id="chat-input" onkeypress="handleChatKeyPress(event)"
+                                    placeholder="اكتب سؤالك الزراعي هنا..."
+                                    class="flex-1 px-4 py-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 text-right">
+                                <button onclick="sendMessage()"
+                                    class="bg-brand-500 hover:bg-brand-600 text-white w-10 h-10 rounded-xl flex items-center justify-center transition"><i
+                                        class="fa-regular fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 6. TAB: DISEASES (تشخيص الأمراض) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-diseases" class="tab-pane hidden space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">تشخيص أمراض النباتات بالذكاء
+                                الاصطناعي</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">ارفع صورة لورقة النبات المصابة وسيقوم
+                                الذكاء الاصطناعي بتشخيص المرض وتحديد العلاج فوراً</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Image Upload & URL input -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-6 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm space-y-4">
+                                <h3 class="font-bold text-md text-brand-600 dark:text-brand-300">فحص صورة نبات</h3>
+
+                                <div>
+                                    <label class="block text-xs font-semibold mb-2">رابط صورة النبات المصاب (أو اختر
+                                        صورة جاهزة للتجربة)</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="disease-img-url"
+                                            placeholder="https://example.com/leaf.jpg"
+                                            class="flex-1 p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900 text-xs text-left">
+                                        <button onclick="analyzeDisease()"
+                                            class="bg-brand-500 hover:bg-brand-600 text-white px-5 py-2 rounded-xl text-xs font-bold transition">تحليل
+                                            الصورة</button>
+                                    </div>
+                                </div>
+
+                                <!-- Preset Demo Photos -->
+                                <div class="space-y-2">
+                                    <span class="text-xs text-gray-400 block">اختر ورقة مصابة للتجربة السريعة:</span>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button onclick="setDiseasePreset('tomato_blight')"
+                                            class="p-2 border rounded-xl hover:bg-brand-50 text-[10px] text-right font-semibold">طماطم
+                                            - اللفحة المتأخرة</button>
+                                        <button onclick="setDiseasePreset('wheat_rust')"
+                                            class="p-2 border rounded-xl hover:bg-brand-50 text-[10px] text-right font-semibold">قمح
+                                            - صدأ الأوراق</button>
+                                        <button onclick="setDiseasePreset('potato_mildew')"
+                                            class="p-2 border rounded-xl hover:bg-brand-50 text-[10px] text-right font-semibold">بطاطس
+                                            - بياض دقيقي</button>
+                                    </div>
+                                </div>
+
+                                <!-- Image Display Frame -->
+                                <div
+                                    class="border border-dashed border-gray-200 dark:border-brand-800 rounded-xl p-8 flex flex-col items-center justify-center bg-gray-50 dark:bg-brand-900/30 min-h-[220px]">
+                                    <img id="disease-preview-img" src=""
+                                        class="max-h-48 rounded-lg shadow-md hidden mb-2">
+                                    <div id="disease-placeholder" class="text-center text-gray-400">
+                                        <i class="fa-solid fa-camera text-4xl mb-3 text-brand-300"></i>
+                                        <p class="text-xs">سيتم عرض صورة الورقة المصابة هنا بمجرد اختيارها أو إدخال
+                                            الرابط</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Diagnosis Report -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-6 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm space-y-4">
+                                <h3 class="font-bold text-md text-brand-600 dark:text-brand-300">تقرير التشخيص الطبي
+                                    الزراعي</h3>
+
+                                <div id="diagnosis-result" class="space-y-4">
+                                    <!-- Initial placeholder state -->
+                                    <div class="text-center py-12 text-gray-400">
+                                        <i class="fa-solid fa-microscope text-4xl mb-3"></i>
+                                        <p class="text-xs">يرجى رفع أو اختيار صورة لورقة النبات لبدء التحليل التلقائي
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 7. TAB: WEATHER (الطقس والتحذيرات الذكية) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-weather" class="tab-pane hidden space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">مركز الطقس الزراعي الذكي</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">توقعات الطقس الدقيقة لمزرعتك في مصر مع
+                                نصائح مخصصة لحماية المحصول</p>
+                        </div>
+
+                        <!-- Current Farm Selector -->
+                        <div class="flex items-center gap-3 bg-white dark:bg-[#121f18] p-4 rounded-xl border">
+                            <span class="text-xs font-bold text-gray-500">اختر المزرعة المستهدفة:</span>
+                            <select id="weather-farm-select" onchange="updateWeatherForecast()"
+                                class="text-xs p-2 rounded-lg border bg-gray-50 dark:bg-brand-900">
+                                <option value="Beheira">مزرعة البحيرة الكبرى (دمنهور)</option>
+                                <option value="Gharbia">أرض الطماطم الغربية (طنطا)</option>
+                            </select>
+                        </div>
+
+                        <!-- Main Weather Panel -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                            <!-- Today's Weather -->
+                            <div
+                                class="bg-gradient-to-br from-brand-600 to-emerald-800 text-white p-6 rounded-2xl shadow-md space-y-4 flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 id="weather-city" class="text-xl font-bold">دمنهور، البحيرة</h3>
+                                        <p class="text-xs text-emerald-100">طقس اليوم زراعي ومستقر</p>
+                                    </div>
+                                    <span class="text-4xl"><i class="fa-solid fa-cloud-sun"></i></span>
+                                </div>
+                                <div class="my-6">
+                                    <span class="text-5xl font-extrabold" id="weather-temp-main">22°م</span>
+                                    <span class="text-xs block text-emerald-100 mt-1">الرطوبة: 45% | الرياح: 12
+                                        كم/س</span>
+                                </div>
+                                <div class="bg-white/15 p-3 rounded-xl text-xs leading-relaxed">
+                                    <strong>توصية الطقس:</strong> طقس ممتاز للري السطحي صباحاً ولرش المبيدات الوقائية.
+                                </div>
+                            </div>
+
+                            <!-- 5-Day Forecast -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] p-5 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm md:col-span-2 space-y-4">
+                                <h3 class="font-bold text-md text-brand-600 dark:text-brand-300">توقعات الـ 5 أيام
+                                    القادمة</h3>
+
+                                <div class="grid grid-cols-5 gap-2 text-center">
+                                    <div class="p-3 bg-gray-50 dark:bg-brand-900/40 rounded-xl">
+                                        <span class="text-xs text-gray-400 block mb-2">الأربعاء</span>
+                                        <i class="fa-solid fa-sun text-amber-500 text-lg mb-2"></i>
+                                        <span class="font-bold text-xs block">23°م</span>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 dark:bg-brand-900/40 rounded-xl">
+                                        <span class="text-xs text-gray-400 block mb-2">الخميس</span>
+                                        <i class="fa-solid fa-sun text-amber-500 text-lg mb-2"></i>
+                                        <span class="font-bold text-xs block">24°م</span>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 dark:bg-brand-900/40 rounded-xl">
+                                        <span class="text-xs text-gray-400 block mb-2">الجمعة</span>
+                                        <i class="fa-solid fa-cloud text-gray-400 text-lg mb-2"></i>
+                                        <span class="font-bold text-xs block">21°م</span>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 dark:bg-brand-900/40 rounded-xl">
+                                        <span class="text-xs text-gray-400 block mb-2">السبت</span>
+                                        <i class="fa-solid fa-cloud-rain text-blue-400 text-lg mb-2"></i>
+                                        <span class="font-bold text-xs block">19°م</span>
+                                    </div>
+                                    <div class="p-3 bg-brand-500 text-white rounded-xl">
+                                        <span class="text-xs text-emerald-100 block mb-2">الأحد</span>
+                                        <i class="fa-solid fa-wind text-white text-lg mb-2"></i>
+                                        <span class="font-bold text-xs block">18°م</span>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="bg-amber-50 dark:bg-amber-950/40 p-3.5 rounded-xl text-xs text-amber-800 dark:text-amber-300">
+                                    <h4 class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                                        تنبيه زراعي هام ليوم الأحد</h4>
+                                    <p>رياح نشطة مثيرة للأتربة مع هبوط نسبي في درجات الحرارة. نوصي بتأجيل رش المحاصيل
+                                        المفتوحة وتأمين البيوت المحمية.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 8. TAB: MARKETPLACE (السوق الزراعي المصري) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-marketplace" class="tab-pane hidden space-y-6">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">السوق الزراعي لنبتة</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">شراء وتوريد مستلزمات الإنتاج الزراعي
+                                    من بذور، أسمدة، ومعدات بأفضل الأسعار الرسمية في مصر</p>
+                            </div>
+                            <!-- Search and Category Filters -->
+                            <div class="flex gap-2">
+                                <input type="text" placeholder="ابحث عن منتج..."
+                                    class="px-3 py-2 border rounded-xl text-xs dark:bg-brand-900">
+                                <select class="text-xs p-2 rounded-xl border bg-white dark:bg-brand-900">
+                                    <option>الكل</option>
+                                    <option>أسمدة ومغذيات</option>
+                                    <option>بذور وتقاوي</option>
+                                    <option>مبيدات وقائية</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Marketplace Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Item 1 -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden flex flex-col justify-between">
+                                <div class="p-4 bg-gray-50 dark:bg-brand-950/40 flex justify-center py-6 relative">
+                                    <span
+                                        class="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full">تقاوي
+                                        معتمدة</span>
+                                    <i class="fa-solid fa-wheat-awn text-4xl text-amber-600"></i>
+                                </div>
+                                <div class="p-4 space-y-2">
+                                    <h4 class="font-bold text-sm">بذور قمح صافي موسكو</h4>
+                                    <p class="text-xs text-gray-400">تقاوي قمح روسي فاخرة مقاومة للجفاف والملوحة</p>
+                                    <div class="flex items-center justify-between mt-3">
+                                        <span class="text-brand-600 dark:text-brand-300 font-extrabold text-sm">350 ج.م
+                                            / كيلو</span>
+                                        <button onclick="addToCart('بذور قمح صافي موسكو')"
+                                            class="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-[10px] font-bold rounded-lg transition">شراء</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Item 2 -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden flex flex-col justify-between">
+                                <div class="p-4 bg-gray-50 dark:bg-brand-950/40 flex justify-center py-6 relative">
+                                    <span
+                                        class="absolute top-2 right-2 bg-brand-500 text-white text-[10px] px-2 py-0.5 rounded-full">أسمدة
+                                        كيماوية</span>
+                                    <i class="fa-solid fa-flask text-4xl text-emerald-600"></i>
+                                </div>
+                                <div class="p-4 space-y-2">
+                                    <h4 class="font-bold text-sm">سماد نيتروجيني 46%</h4>
+                                    <p class="text-xs text-gray-400">سماد اليوريا الغني لتعزيز المجموع الخضري والنمو
+                                        السريع</p>
+                                    <div class="flex items-center justify-between mt-3">
+                                        <span class="text-brand-600 dark:text-brand-300 font-extrabold text-sm">1,200
+                                            ج.م / شيكارة</span>
+                                        <button onclick="addToCart('سماد نيتروجيني 46%')"
+                                            class="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-[10px] font-bold rounded-lg transition">شراء</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Item 3 -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden flex flex-col justify-between">
+                                <div class="p-4 bg-gray-50 dark:bg-brand-950/40 flex justify-center py-6 relative">
+                                    <span
+                                        class="absolute top-2 right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">وقاية</span>
+                                    <i class="fa-solid fa-spray-can text-4xl text-amber-500"></i>
+                                </div>
+                                <div class="p-4 space-y-2">
+                                    <h4 class="font-bold text-sm">مبيد أفيشيا للحشرات</h4>
+                                    <p class="text-xs text-gray-400">مبيد حشري واسع المدى لعلاج المن والذبابة البيضاء
+                                    </p>
+                                    <div class="flex items-center justify-between mt-3">
+                                        <span class="text-brand-600 dark:text-brand-300 font-extrabold text-sm">280 ج.م
+                                            / لتر</span>
+                                        <button onclick="addToCart('مبيد أفيشيا للحشرات')"
+                                            class="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-[10px] font-bold rounded-lg transition">شراء</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Item 4 -->
+                            <div
+                                class="bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden flex flex-col justify-between">
+                                <div class="p-4 bg-gray-50 dark:bg-brand-950/40 flex justify-center py-6 relative">
+                                    <span
+                                        class="absolute top-2 right-2 bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full">معدات
+                                        حديثة</span>
+                                    <i class="fa-solid fa-faucet-drip text-4xl text-blue-600"></i>
+                                </div>
+                                <div class="p-4 space-y-2">
+                                    <h4 class="font-bold text-sm">مضخة ري بالتنقيط 5HP</h4>
+                                    <p class="text-xs text-gray-400">مضخة مياه كهربائية ذات كفاءة ممتازة لشبكات الري</p>
+                                    <div class="flex items-center justify-between mt-3">
+                                        <span class="text-brand-600 dark:text-brand-300 font-extrabold text-sm">8,500
+                                            ج.م / وحدة</span>
+                                        <button onclick="addToCart('مضخة ري بالتنقيط')"
+                                            class="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-[10px] font-bold rounded-lg transition">شراء</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 9. TAB: NOTIFICATIONS (الإشعارات) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-notifications" class="tab-pane hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">الإشعارات والتنبيهات
+                                    العاجلة</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">قائمة التنبيهات الزراعية وتوصيات
+                                    الطقس الصادرة لمزارعك</p>
+                            </div>
+                            <button onclick="clearAllNotifications()"
+                                class="text-xs text-gray-400 hover:text-red-500">حذف الكل</button>
+                        </div>
+
+                        <div id="notifications-list" class="space-y-3">
+                            <!-- Alert 1 -->
+                            <div
+                                class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 p-4 rounded-xl flex items-start gap-3">
+                                <span
+                                    class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 text-red-600 flex items-center justify-center flex-shrink-0"><i
+                                        class="fa-solid fa-triangle-exclamation"></i></span>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-xs text-red-800 dark:text-red-300">تحذير من الصقيع في
+                                        دمنهور</h4>
+                                    <p class="text-xs text-red-700 dark:text-red-400">يتوقع هبوط حاد لدرجة الحرارة فجر
+                                        الغد قد يؤثر على ثمار الطماطم. يرجى توفير حماية بلاستيكية عاجلة للحقل.</p>
+                                    <span class="text-[10px] text-gray-400 block mt-1">منذ ساعتين</span>
+                                </div>
+                            </div>
+
+                            <!-- Alert 2 -->
+                            <div
+                                class="bg-brand-50 dark:bg-brand-900/40 border border-brand-200 dark:border-brand-800 p-4 rounded-xl flex items-start gap-3">
+                                <span
+                                    class="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-600 flex items-center justify-center flex-shrink-0"><i
+                                        class="fa-regular fa-calendar-check"></i></span>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-xs text-brand-800 dark:text-brand-300">تذكير بموعد الري
+                                        الدوري</h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">حان وقت الري الخفيف لحقل القمح
+                                        في مزرعة البحيرة بناءً على معدلات التبخر الحالية.</p>
+                                    <span class="text-[10px] text-gray-400 block mt-1">منذ يوم واحد</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- =================================== -->
+                    <!-- 10. TAB: SETTINGS (الإعدادات) -->
+                    <!-- =================================== -->
+                    <div id="tab-content-settings" class="tab-pane hidden space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">إعدادات الحساب والمنصة</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">تعديل تفاصيل الملف الشخصي، تفعيل
+                                التنبيهات، والتحكم في منصتك</p>
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-[#121f18] p-6 rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm space-y-6">
+                            <h3 class="font-bold text-md text-brand-600 dark:text-brand-300">بيانات الفلاح الشخصية</h3>
+
+                            <form onsubmit="saveUserProfile(event)" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">الاسم بالكامل</label>
+                                        <input type="text" id="user-settings-name" value="أحمد جمال" required
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">نوع المستخدم</label>
+                                        <select id="user-settings-role"
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                            <option value="owner" selected>صاحب مزرعة</option>
+                                            <option value="farmer">مزارع تقليدي</option>
+                                            <option value="engineer">مهندس زراعي استشاري</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">رقم الهاتف المصري</label>
+                                        <input type="tel" id="user-settings-phone" value="01012345678" required
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold mb-1">موقعك الجغرافي الأساسي</label>
+                                        <input type="text" id="user-settings-location" value="البحيرة، دمنهور" required
+                                            class="w-full p-2.5 rounded-xl border dark:border-brand-800 bg-gray-50 dark:bg-brand-900">
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 border-t border-gray-100 dark:border-brand-900 flex justify-end">
+                                    <button type="submit"
+                                        class="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition">حفظ
+                                        التغييرات بالكامل</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT SECTION -->
+    <script>
+        // Data Store & Global State
+        const state = {
+            isAuthenticated: false, // Force Login flow
+            user: {
+                name: "أحمد جمال",
+                role: "owner",
+                phone: "01012345678",
+                location: "البحيرة، دمنهور"
+            },
+            farms: [
+                { id: 1, name: "مزرعة البحيرة الكبرى", area: 4, governorate: "Beheira", city: "دمنهور", soil: "طينية", crop: "قمح" },
+                { id: 2, name: "أرض الطماطم الغربية", area: 2, governorate: "Gharbia", city: "طنطا", soil: "طينية مختلطة", crop: "طماطم" }
+            ],
+            // Simulated live prices retrieved from "Agricultural API" for Egypt in 2026
+            apiPrices: {
+                wheat: {
+                    seeds: 3500,
+                    fertilizers: 5000,
+                    pesticides: 2000,
+                    irrigation: 1500,
+                    labor: 4000,
+                    transport: 1200,
+                    expectedYield: 2.8, // tons per acre
+                    pricePerTon: 15000 // Egyptian Pound (Gov pricing)
+                },
+                tomato: {
+                    seeds: 8000,
+                    fertilizers: 7500,
+                    pesticides: 4500,
+                    irrigation: 3000,
+                    labor: 8000,
+                    transport: 2500,
+                    expectedYield: 18.0,
+                    pricePerTon: 3500
+                },
+                potato: {
+                    seeds: 12000,
+                    fertilizers: 9000,
+                    pesticides: 5000,
+                    irrigation: 2500,
+                    labor: 7000,
+                    transport: 3000,
+                    expectedYield: 14.5,
+                    pricePerTon: 4800
+                },
+                corn: {
+                    seeds: 2800,
+                    fertilizers: 4500,
+                    pesticides: 1800,
+                    irrigation: 2000,
+                    labor: 3500,
+                    transport: 1000,
+                    expectedYield: 3.2,
+                    pricePerTon: 11500
+                }
+            },
+            governorates: {
+                Alexandria: {
+                    name: "الإسكندرية",
+                    eng: "Alexandria",
+                    area: "120 ألف فدان",
+                    temp: "22° مئوية",
+                    crops: ["قمح", "شعير", "خضروات"],
+                    water: ["نهر النيل", "البحر المتوسط (تحلية)"],
+                    alert: "توقعات بارتفاع نسب الرطوبة الساحلية غداً. يفضل تجنب رش المحاصيل الحساسة بالمساء."
+                },
+                Beheira: {
+                    name: "البحيرة",
+                    eng: "Beheira",
+                    area: "1.2 مليون فدان",
+                    temp: "22° مئوية",
+                    crops: ["قمح", "طماطم", "بطاطس"],
+                    water: ["ترعة المحمودية (نيل)"],
+                    alert: "رياح نشطة مثيرة للأتربة. يرجى تثبيت البيوت البلاستيكية."
+                },
+                Dakahlia: {
+                    name: "الدقهلية",
+                    eng: "Dakahlia",
+                    area: "830 ألف فدان",
+                    temp: "24° مئوية",
+                    crops: ["أرز", "قمح", "بنجر السكر"],
+                    water: ["فرع دمياط (نيل)"],
+                    alert: "الأجواء مثالية لري محصول الأرز. احرص على عدم زيادة منسوب مياه الصرف."
+                },
+                Sharqia: {
+                    name: "الشرقية",
+                    eng: "Sharqia",
+                    area: "850 ألف فدان",
+                    temp: "25° مئوية",
+                    crops: ["قمح", "قطن", "ذرة"],
+                    water: ["ترعة الإسماعيلية"],
+                    alert: "تنبيه لمزارعي القطن: ري خفيف هادئ لضمان ثبات اللوز."
+                },
+                Minya: {
+                    name: "المنيا",
+                    eng: "Minya",
+                    area: "450 ألف فدان",
+                    temp: "28° مئوية",
+                    crops: ["قصب السكر", "ذرة", "بصل"],
+                    water: ["ترعة الإبراهيمية"],
+                    alert: "موجة حارة متوسطة تبدأ الأسبوع القادم. نوصي بزيادة كمية مياه الري بنسبة 10%."
+                },
+                Sohag: {
+                    name: "سوهاج",
+                    eng: "Sohag",
+                    area: "310 ألف فدان",
+                    temp: "31° مئوية",
+                    crops: ["قمح", "بصل", "برسيم"],
+                    water: ["نهر النيل مباشر"],
+                    alert: "ارتفاع ملحوظ لدرجات الحرارة ظهراً. ينصح بالري حصراً في ساعات الصباح الباكر أو بعد الغروب."
+                },
+                Qena: {
+                    name: "قنا",
+                    eng: "Qena",
+                    area: "290 ألف فدان",
+                    temp: "33° مئوية",
+                    crops: ["قصب السكر", "موز", "طماطم"],
+                    water: ["نهر النيل"],
+                    alert: "ري استباقي هام جداً لمحصول القصب لتعويض الفاقد المائي السريع."
+                }
+            },
+            diseasePresets: {
+                tomato_blight: {
+                    name: "اللفحة المتأخرة في الطماطم (Late Blight)",
+                    conf: "96%",
+                    img: "https://images.unsplash.com/photo-1592150621744-aca64f48394a?auto=format&fit=crop&q=80&w=400",
+                    cause: "فطر Phytophthora infestans الذي ينتشر في الأجواء الباردة والرطبة.",
+                    treatment: "رش فوري بمبيد نحاسي جهازي (مثل رادوميل جولد) بمعدل 150 جرام / 100 لتر ماء مع تجنب الري بالرش.",
+                    prevention: "زراعة أصناف مقاومة، وتوسيع المسافات بين النباتات للتهوية، وتجنب زيادة الرطوبة."
+                },
+                wheat_rust: {
+                    name: "صدأ الأوراق في القمح (Leaf Rust)",
+                    conf: "92%",
+                    img: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&q=80&w=400",
+                    cause: "فطر Puccinia recondita الذي ينتقل بالرياح عند زيادة الرطوبة.",
+                    treatment: "رش فوري بمبيد فطري مناسب مثل تيلت (Tilt) بمعدل 25 سم مكعب لكل 100 لتر ماء.",
+                    prevention: "الالتزام بالسياسة الصنفية لوزارة الزراعة المصرية وزراعة صنف 'مصر 3' أو 'جيزة 171' المقاومين للصدأ."
+                },
+                potato_mildew: {
+                    name: "البياض الدقيقي في البطاطس (Powdery Mildew)",
+                    conf: "89%",
+                    img: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&q=80&w=400",
+                    cause: "فطريات تنتشر في الأجواء الدافئة والجافة مع رطوبة عالية في الصباح.",
+                    treatment: "رش بمبيد كبريت ميكروني أو مبيد فطري تخصصي مثل توباس بمعدل 40 سم مكعب / 100 لتر ماء.",
+                    prevention: "التخلص من بقايا المحصول السابق وتجنب الإفراط في التسميد الآزوتي."
+                }
+            }
+        };
+
+        // --- CHART OBJECTS ---
+        let productionChartInstance = null;
+        let cropChartInstance = null;
+
+        window.onload = function () {
+            // Check auth first
+            checkAuthentication();
+
+            // Initializing Charts
+            initCharts();
+
+            // Load state data
+            updateKPIs();
+
+            // Build Farm Selection for Calculator
+            populateCalculatorFarms();
+        }
+
+        // --- AUTHENTICATION ENFORCEMENT ---
+        function checkAuthentication() {
+            const portal = document.getElementById('auth-portal');
+            if (!state.isAuthenticated) {
+                // Show only auth overlay
+                portal.classList.remove('hidden');
+            } else {
+                portal.classList.add('hidden');
+            }
+        }
+
+        function bypassAuth() {
+            state.isAuthenticated = true;
+            checkAuthentication();
+            showToast("تم الدخول السريع", "أهلاً بك في المنصة الزراعية الذكية نبتة");
+        }
+
+        function logout() {
+            state.isAuthenticated = false;
+            checkAuthentication();
+            showToast("تم الخروج", "تم تسجيل خروجك من منصة نبتة بأمان");
+        }
+
+        function switchAuthTab(type) {
+            const loginBtn = document.getElementById('tab-login');
+            const regBtn = document.getElementById('tab-register');
+            const loginForm = document.getElementById('form-login');
+            const regForm = document.getElementById('form-register');
+
+            if (type === 'login') {
+                loginBtn.className = "flex-1 pb-3 text-center border-b-2 border-brand-500 text-brand-500 font-semibold";
+                regBtn.className = "flex-1 pb-3 text-center border-b-2 border-transparent text-gray-400 font-semibold";
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+            } else {
+                regBtn.className = "flex-1 pb-3 text-center border-b-2 border-brand-500 text-brand-500 font-semibold";
+                loginBtn.className = "flex-1 pb-3 text-center border-b-2 border-transparent text-gray-400 font-semibold";
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        function handleAuthSubmit(event, type) {
+            event.preventDefault();
+            const feedback = document.getElementById('auth-feedback');
+            feedback.classList.add('hidden');
+
+            if (type === 'login') {
+                const identifier = document.getElementById('login-id').value;
+                state.user.name = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+            } else {
+                const firstName = document.getElementById('reg-firstname').value;
+                const lastName = document.getElementById('reg-lastname').value;
+                const userRole = document.getElementById('reg-usertype').value;
+                state.user.name = `${firstName} ${lastName}`;
+                state.user.role = userRole;
+            }
+
+            // Apply updates to page header
+            document.getElementById('welcome-message').innerHTML = `<span>مرحباً بك، ${state.user.name}</span><span class="wave">👋</span>`;
+            document.getElementById('sidebar-user-name').innerText = state.user.name;
+            document.getElementById('sidebar-user-role').innerText = state.user.role === 'owner' ? 'صاحب مزرعة' : 'مزارع معتمد';
+
+            state.isAuthenticated = true;
+            checkAuthentication();
+            showToast("تم الدخول بنجاح", `مرحباً بك يا ${state.user.name} في نبتة`);
+        }
+
+        function showForgotPassword() {
+            showToast("استرجاع الحساب", "تم إرسال كود التحقق لرقم هاتفك المسجل لدينا");
+        }
+
+        // --- CHARTS GENERATOR ---
+        function initCharts() {
+            const ctxProduction = document.getElementById('productionChart').getContext('2d');
+            productionChartInstance = new Chart(ctxProduction, {
+                type: 'bar',
+                data: {
+                    labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+                    datasets: [
+                        {
+                            label: 'الإنتاج المتوقع (طن)',
+                            data: [2.8, 2.5, 1.8, 1.6, 1.2, 1.3, 1.8, 2.2, 2.5, 2.8, 3.0, 3.2],
+                            backgroundColor: '#2E7D32',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'الأرباح بالآلاف (ج.م)',
+                            data: [18, 16, 12, 11, 8, 9, 13, 15, 17, 19, 21, 23],
+                            type: 'line',
+                            borderColor: '#3b82f6',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            const ctxCrop = document.getElementById('cropChart').getContext('2d');
+            cropChartInstance = new Chart(ctxCrop, {
+                type: 'doughnut',
+                data: {
+                    labels: ['قمح', 'طماطم'],
+                    datasets: [{
+                        data: [4, 2],
+                        backgroundColor: ['#2E7D32', '#f59e0b'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- NAVIGATION ENGINE ---
+        function switchTab(tabId) {
+            // Hide all tab content panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.add('hidden');
+            });
+            // Show requested tab content pane
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+
+            // Reset active style on sidebar items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-brand-800/60', 'text-white', 'border-l-4', 'border-brand-500');
+                item.classList.add('text-gray-300');
+            });
+            // Set current active state
+            const currentNav = document.getElementById(`nav-${tabId}`);
+            if (currentNav) {
+                currentNav.classList.remove('text-gray-300');
+                currentNav.classList.add('bg-brand-800/60', 'text-white', 'border-l-4', 'border-brand-500');
+            }
+
+            // If switching to calculator, ensure latest dropdowns are updated
+            if (tabId === 'calculator') {
+                populateCalculatorFarms();
+            }
+
+            // Mobile view sidebar close
+            toggleSidebar(false);
+        }
+
+        // --- SIDEBAR SWITCHER (MOBILE Friendly) ---
+        function toggleSidebar(isOpen) {
+            const sidebar = document.getElementById('sidebar');
+            if (isOpen) {
+                sidebar.classList.remove('translate-x-full');
+            } else {
+                sidebar.classList.add('translate-x-full');
+            }
+        }
+
+        // --- THEME ENGINE ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                icon.className = 'fa-regular fa-moon text-lg';
+                showToast("الوضع المضيء", "تم التفعيل بنجاح");
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                icon.className = 'fa-regular fa-sun text-lg';
+                showToast("الوضع الداكن", "تم التفعيل بنجاح");
+            }
+        }
+
+        // --- DYNAMIC STATE UPDATE ---
+        function updateKPIs() {
+            let totalFarms = state.farms.length;
+            let totalArea = state.farms.reduce((acc, farm) => acc + parseInt(farm.area), 0);
+
+            document.getElementById('kpi-total-farms').innerText = totalFarms;
+            document.getElementById('kpi-total-area').innerText = `بإجمالي مساحة ${totalArea} فدان`;
+            document.getElementById('kpi-active-crops').innerText = totalFarms;
+
+            // Calculate profit estimate based on pulled API values for registered crops
+            let estimatedProfit = 0;
+            state.farms.forEach(f => {
+                const normCrop = normalizeCropName(f.crop);
+                const info = state.apiPrices[normCrop] || state.apiPrices.wheat;
+                const totalCost = (info.seeds + info.fertilizers + info.pesticides + info.irrigation + info.labor + info.transport) * parseFloat(f.area);
+                const totalRev = (info.expectedYield * parseFloat(f.area)) * info.pricePerTon;
+                estimatedProfit += (totalRev - totalCost);
+            });
+
+            document.getElementById('kpi-expected-profit').innerText = `${Math.round(estimatedProfit).toLocaleString()} ج.م`;
+
+            // Calculate dynamic distribution percentages
+            let totalAcres = 0;
+            let wheatAcres = 0;
+            let tomatoAcres = 0;
+
+            state.farms.forEach(f => {
+                const norm = normalizeCropName(f.crop);
+                const a = parseFloat(f.area);
+                totalAcres += a;
+                if (norm === 'wheat') wheatAcres += a;
+                if (norm === 'tomato') tomatoAcres += a;
+            });
+
+            if (totalAcres > 0) {
+                const wheatPct = ((wheatAcres / totalAcres) * 100).toFixed(1);
+                const tomatoPct = ((tomatoAcres / totalAcres) * 100).toFixed(1);
+                document.getElementById('dist-wheat-pct').innerText = `${wheatPct}%`;
+                document.getElementById('dist-tomato-pct').innerText = `${tomatoPct}%`;
+            }
+
+            // Redraw crop chart if instances exist
+            if (cropChartInstance) {
+                let cropData = {};
+                state.farms.forEach(f => {
+                    let c = f.crop || 'أخرى';
+                    cropData[c] = (cropData[c] || 0) + parseFloat(f.area);
+                });
+                cropChartInstance.data.labels = Object.keys(cropData);
+                cropChartInstance.data.datasets[0].data = Object.values(cropData);
+                cropChartInstance.update();
+            }
+        }
+
+        // --- FARM PROFILE MODULE ---
+        function openAddFarmModal() {
+            document.getElementById('add-farm-modal').classList.remove('hidden');
+        }
+
+        function closeAddFarmModal() {
+            document.getElementById('add-farm-modal').classList.add('hidden');
+        }
+
+        function handleSaveFarm(event) {
+            event.preventDefault();
+            const name = document.getElementById('farm-name').value;
+            const area = document.getElementById('farm-area').value;
+            const gov = document.getElementById('farm-governorate').value;
+            const city = document.getElementById('farm-city').value;
+            const soil = document.getElementById('farm-soil').value;
+            const crop = document.getElementById('farm-crop').value || 'قمح';
+
+            const newFarm = {
+                id: Date.now(),
+                name: name,
+                area: area,
+                governorate: gov,
+                city: city,
+                soil: soil,
+                crop: crop
+            };
+
+            state.farms.push(newFarm);
+            addFarmCardToDOM(newFarm);
+            updateKPIs();
+            closeAddFarmModal();
+            document.getElementById('farm-form').reset();
+            showToast("مزرعة جديدة", `تم حفظ مزرعة "${name}" بنجاح في النظام`);
+        }
+
+        function addFarmCardToDOM(farm) {
+            const container = document.getElementById('farms-grid');
+            const card = document.createElement('div');
+            card.className = "bg-white dark:bg-[#121f18] rounded-2xl border border-gray-100 dark:border-brand-900/60 shadow-sm overflow-hidden p-6 relative";
+            card.dataset.id = farm.id;
+            card.innerHTML = `
+                <span class="absolute top-4 left-4 bg-emerald-50 text-emerald-600 text-xs px-2.5 py-1 rounded-full font-bold">مضافة حديثاً</span>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">${farm.name}</h3>
+                <div class="grid grid-cols-2 gap-4 mt-4 text-xs">
+                    <div>
+                        <span class="text-gray-400 block">المساحة:</span>
+                        <span class="font-bold text-sm">${farm.area} فدان</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block">المحافظة:</span>
+                        <span class="font-bold text-sm">${farm.governorate} (${farm.city || 'دمنهور'})</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block">نوع التربة:</span>
+                        <span class="font-bold text-sm">${farm.soil}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block">المحصول الحالي:</span>
+                        <span class="font-bold text-sm text-brand-600">${farm.crop}</span>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-50 dark:border-brand-900/40 flex justify-between gap-2">
+                    <button onclick="switchTab('weather')" class="text-xs text-brand-600 hover:underline"><i class="fa-solid fa-cloud-sun mr-1"></i> طقس المزرعة</button>
+                    <button onclick="openCalcForFarm(${farm.id})" class="text-xs text-brand-600 hover:underline"><i class="fa-solid fa-calculator mr-1"></i> حساب الأرباح والتكاليف</button>
+                    <button class="text-xs text-red-500 hover:underline" onclick="deleteFarm(this, ${farm.id})"><i class="fa-regular fa-trash-can"></i> حذف</button>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        function deleteFarm(btn, id) {
+            const card = btn.closest('[data-id]') || btn.parentElement.parentElement;
+            card.remove();
+            state.farms = state.farms.filter(f => f.id !== id);
+            updateKPIs();
+            showToast("تم الحذف", "تم إزالة المزرعة بنجاح");
+        }
+
+        // --- MAP CLICK LOGIC ---
+        function selectGovernorate(govKey) {
+            const govData = state.governorates[govKey];
+            if (!govData) return;
+
+            document.getElementById('gov-name').innerText = govData.name;
+            document.getElementById('gov-eng-name').innerText = `${govData.eng} Governorate`;
+            document.getElementById('gov-area').innerText = govData.area;
+            document.getElementById('gov-temp').innerText = govData.temp;
+
+            // Render crops pills
+            const cropsContainer = document.getElementById('gov-crops');
+            cropsContainer.innerHTML = '';
+            govData.crops.forEach(c => {
+                cropsContainer.innerHTML += `<span class="bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-300 text-xs px-2.5 py-1 rounded-full">${c}</span>`;
+            });
+
+            // Render water sources
+            const waterContainer = document.getElementById('gov-water');
+            waterContainer.innerHTML = '';
+            govData.water.forEach(w => {
+                waterContainer.innerHTML += `<span class="bg-blue-50 dark:bg-blue-950 text-blue-600 text-xs px-2.5 py-1 rounded-full">${w}</span>`;
+            });
+
+            document.getElementById('gov-alert').innerText = govData.alert;
+            showToast("خريطة تفاعلية", `تم عرض تفاصيل محافظة ${govData.name}`);
+        }
+
+
+        // --- INTEGRATED CALCULATOR WITH FARM REGISTRY ---
+
+        // Populate farm dropdown in calculator tab
+        function populateCalculatorFarms() {
+            const select = document.getElementById('calc-farm-select');
+            if (!select) return;
+            select.innerHTML = '';
+
+            if (state.farms.length === 0) {
+                select.innerHTML = `<option value="">لا توجد مزارع مسجلة! يرجى إضافة واحدة أولاً</option>`;
+                document.getElementById('calc-pulled-area').innerText = '0';
+                document.getElementById('calc-pulled-crop').innerText = 'لا يوجد';
+                return;
+            }
+
+            state.farms.forEach(farm => {
+                select.innerHTML += `<option value="${farm.id}">${farm.name} (${farm.city || farm.governorate})</option>`;
+            });
+
+            // Automatically load first farm
+            loadFarmDataIntoCalculator();
+        }
+
+        function normalizeCropName(cropStr) {
+            const lower = cropStr.toLowerCase();
+            if (lower.includes('قمح') || lower.includes('wheat')) return 'wheat';
+            if (lower.includes('طماطم') || lower.includes('tomato')) return 'tomato';
+            if (lower.includes('بطاطس') || lower.includes('potato')) return 'potato';
+            if (lower.includes('ذرة') || lower.includes('corn')) return 'corn';
+            return 'wheat'; // default
+        }
+
+        function loadFarmDataIntoCalculator() {
+            const select = document.getElementById('calc-farm-select');
+            const farmId = parseInt(select.value);
+            const farm = state.farms.find(f => f.id === farmId);
+
+            if (!farm) return;
+
+            document.getElementById('calc-pulled-area').innerText = farm.area;
+            document.getElementById('calc-pulled-crop').innerText = farm.crop;
+
+            // Fetch prices automatically for the farm crop
+            const normCrop = normalizeCropName(farm.crop);
+            const priceInfo = state.apiPrices[normCrop] || state.apiPrices.wheat;
+
+            // Set input values to reflect the API simulated prices
+            document.getElementById('cost-seeds').value = priceInfo.seeds;
+            document.getElementById('cost-fertilizers').value = priceInfo.fertilizers;
+            document.getElementById('cost-pesticides').value = priceInfo.pesticides;
+            document.getElementById('cost-irrigation').value = priceInfo.irrigation;
+            document.getElementById('cost-labor').value = priceInfo.labor;
+            document.getElementById('cost-transport').value = priceInfo.transport;
+
+            // Instantly perform calculations
+            calculateCostProfit();
+        }
+
+        function openCalcForFarm(farmId) {
+            switchTab('calculator');
+            const select = document.getElementById('calc-farm-select');
+            if (select) {
+                select.value = farmId;
+                loadFarmDataIntoCalculator();
+            }
+        }
+
+        function fetchLatestAPIPrices() {
+            showToast("جاري جلب الأسعار", "يتصل النظام الآن بـ API الإدارة العامة للإرشاد الزراعي بمصر...");
+            setTimeout(() => {
+                loadFarmDataIntoCalculator();
+                showToast("اكتمل التحديث", "تم جلب أسعار السوق ومستلزمات الإنتاج اللحظية لعام 2026");
+            }, 800);
+        }
+
+        function calculateCostProfit() {
+            const area = parseFloat(document.getElementById('calc-pulled-area').innerText) || 0;
+            const select = document.getElementById('calc-farm-select');
+            const farmId = parseInt(select.value);
+            const farm = state.farms.find(f => f.id === farmId);
+
+            if (!farm) {
+                showToast("خطأ", "برجاء اختيار مزرعة صالحة للحساب");
+                return;
+            }
+
+            // Gather inputs as they are editable by user
+            const seeds = parseFloat(document.getElementById('cost-seeds').value) || 0;
+            const fertilizers = parseFloat(document.getElementById('cost-fertilizers').value) || 0;
+            const pesticides = parseFloat(document.getElementById('cost-pesticides').value) || 0;
+            const irrigation = parseFloat(document.getElementById('cost-irrigation').value) || 0;
+            const labor = parseFloat(document.getElementById('cost-labor').value) || 0;
+            const transport = parseFloat(document.getElementById('cost-transport').value) || 0;
+
+            const costPerAcre = seeds + fertilizers + pesticides + irrigation + labor + transport;
+            const totalCost = costPerAcre * area;
+
+            // Fetch dynamic API rates for yields and sale price
+            const normCrop = normalizeCropName(farm.crop);
+            const apiData = state.apiPrices[normCrop] || state.apiPrices.wheat;
+
+            const totalYield = apiData.expectedYield * area;
+            const totalRevenue = totalYield * apiData.pricePerTon;
+            const netProfit = totalRevenue - totalCost;
+            const roi = totalCost > 0 ? ((netProfit / totalCost) * 100) : 0;
+
+            document.getElementById('res-total-cost').innerText = `${Math.round(totalCost).toLocaleString()} ج.م`;
+            document.getElementById('res-expected-yield').innerText = `${totalYield.toFixed(1)} طن`;
+            document.getElementById('res-total-revenue').innerText = `${Math.round(totalRevenue).toLocaleString()} ج.م`;
+            document.getElementById('res-net-profit').innerText = `${Math.round(netProfit).toLocaleString()} ج.م`;
+            document.getElementById('res-roi').innerText = `${roi.toFixed(1)}%`;
+
+            // Style profits
+            const profitLabel = document.getElementById('res-net-profit');
+            if (netProfit < 0) {
+                profitLabel.className = "font-extrabold text-lg text-red-500";
+            } else {
+                profitLabel.className = "font-extrabold text-lg text-emerald-600";
+            }
+        }
+
+
+        // --- SMART CHATBOT ASSISTANT ---
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function quickAsk(questionText) {
+            document.getElementById('chat-input').value = questionText;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const messageText = input.value.trim();
+            if (!messageText) return;
+
+            // Append user message
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML += `
+                <div class="flex items-start gap-3 max-w-[80%] mr-auto flex-row-reverse">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-brand-600 flex items-center justify-center text-xs flex-shrink-0 font-bold">أج</div>
+                    <div class="bg-gray-100 dark:bg-brand-900 p-3.5 rounded-2xl rounded-tl-none text-xs leading-relaxed">
+                        ${messageText}
+                    </div>
+                </div>
+            `;
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Trigger AI response simulation
+            simulateAIResponse(messageText);
+        }
+
+        function simulateAIResponse(userMessage) {
+            let response = "أهلاً يا باشمهندس. سؤالك ممتاز جداً، بنصحك تتابع جدول التسميد بانتظام وتتواصل مع مرشدنا الفني لو زادت المشكلة.";
+
+            if (userMessage.includes("المن") || userMessage.includes("حشرات")) {
+                response = "حشرة المن خطيرة جداً وبتتغذى على عصارة النبات. أفضل علاج فوري بالعامية المصرية هو استخدام مبيد 'موسبيلان' أو 'أفيشيا' بمعدل 25 جرام لكل 100 لتر ميه وركز الرش على القمم النامية اللي الحشرة بتتجمع فيها.";
+            } else if (userMessage.includes("طماطم") || userMessage.includes("أوراق")) {
+                response = "اصفرار أوراق الطماطم غالباً بيكون نقص عنصر النيتروجين أو بسبب زيادة مية الري وغرق الجذور. اتأكد من ضبط فتحات تصريف المياه وضع سماد نترات نشادر لتعويض النقص.";
+            } else if (userMessage.includes("القمح") || userMessage.includes("شمال") || userMessage.includes("زراعة")) {
+                response = "أفضل ميعاد لزراعة القمح في مصر هو شهر نوفمبر (من 15 لـ 30 نوفمبر) عشان تتجنب مشاكل الصقيع المبكر وتضمن أعلى إنتاجية للفدان.";
+            } else if (userMessage.includes("سماد") || userMessage.includes("بطاطس")) {
+                response = "البطاطس في الأراضي الرملية المستصلحة بتحتاج عنصر البوتاسيوم بكثافة لزيادة حجم الدرنات. نوصي بوضع سماد سلفات البوتاسيوم بمعدل 50 كيلو للفدان.";
+            }
+
+            setTimeout(() => {
+                const chatMessages = document.getElementById('chat-messages');
+                chatMessages.innerHTML += `
+                    <div class="flex items-start gap-3 max-w-[80%]">
+                        <div class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs flex-shrink-0">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="bg-brand-50 dark:bg-brand-900 p-3.5 rounded-2xl rounded-tr-none text-xs leading-relaxed">
+                            ${response}
+                        </div>
+                    </div>
+                `;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 800);
+        }
+
+        // --- PLANT DISEASE DETECTION ---
+        function setDiseasePreset(presetKey) {
+            const preset = state.diseasePresets[presetKey];
+            if (!preset) return;
+
+            document.getElementById('disease-img-url').value = preset.img;
+            const img = document.getElementById('disease-preview-img');
+            img.src = preset.img;
+            img.classList.remove('hidden');
+            document.getElementById('disease-placeholder').classList.add('hidden');
+
+            showToast("تم اختيار العينة", "اضغط على زر 'تحليل الصورة' لبدء تشخيص الحالة");
+        }
+
+        function analyzeDisease() {
+            const url = document.getElementById('disease-img-url').value;
+            if (!url) {
+                showToast("خطأ", "برجاء إدخال رابط الصورة أو اختيار عينة جاهزة أولاً");
+                return;
+            }
+
+            // Set Loading state
+            const resultBox = document.getElementById('diagnosis-result');
+            resultBox.innerHTML = `
+                <div class="text-center py-12 text-gray-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3 text-brand-500"></i>
+                    <p class="text-xs">جاري تحليل أنسجة الأوراق والبحث في قاعدة بيانات أمراض الدلتا والوادي...</p>
+                </div>
+            `;
+
+            // Simulate AI diagnosis
+            setTimeout(() => {
+                // Find matching preset info or fallback
+                let diagnosis = state.diseasePresets.tomato_blight; // default
+                if (url.includes("rust") || url.includes("wheat")) {
+                    diagnosis = state.diseasePresets.wheat_rust;
+                } else if (url.includes("mildew") || url.includes("potato")) {
+                    diagnosis = state.diseasePresets.potato_mildew;
+                }
+
+                resultBox.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <div>
+                                <h4 class="font-extrabold text-md text-red-600 dark:text-red-400">${diagnosis.name}</h4>
+                                <span class="text-[10px] text-gray-400">نسبة دقة الذكاء الاصطناعي: ${diagnosis.conf}</span>
+                            </div>
+                            <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-bold">خطر زراعي</span>
+                        </div>
+                        <div class="text-xs space-y-2">
+                            <p><strong>السبب المباشر:</strong> ${diagnosis.cause}</p>
+                            <p class="bg-emerald-50 dark:bg-brand-900/40 p-3 rounded-lg border border-brand-200">
+                                <strong>خطة العلاج الفورية الموصى بها:</strong> ${diagnosis.treatment}
+                            </p>
+                            <p class="bg-gray-50 dark:bg-brand-950 p-3 rounded-lg">
+                                <strong>توجيهات الوقاية مستقبلاً:</strong> ${diagnosis.prevention}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                showToast("اكتمل التشخيص", "تم تشخيص المرض بواسطة نموذج الذكاء الاصطناعي الخاص بنبتة");
+            }, 1200);
+        }
+
+        // --- WEATHER ENGINE ---
+        function updateWeatherForecast() {
+            const farm = document.getElementById('weather-farm-select').value;
+            const cityEl = document.getElementById('weather-city');
+            const tempEl = document.getElementById('weather-temp-main');
+
+            if (farm === 'Gharbia') {
+                cityEl.innerText = "طنطا، الغربية";
+                tempEl.innerText = "26°م";
+            } else {
+                cityEl.innerText = "دمنهور، البحيرة";
+                tempEl.innerText = "22°م";
+            }
+            showToast("تحديث الطقس", `تم عرض الطقس لمحافظة ${farm === 'Gharbia' ? 'الغربية' : 'البحيرة'}`);
+        }
+
+        // --- TOAST NOTIFICATIONS HELPER ---
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-msg').innerText = message;
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+
+        // --- MARKETPLACE ACTIONS ---
+        function addToCart(itemName) {
+            showToast("تم الإضافة للسلة", `تم حجز ${itemName} بنجاح لمراجعة شركة الشحن لتوصيلها لباب مزرعتك.`);
+        }
+
+        // --- RECOMMENDATION CALCULATOR ENGINE ---
+        function calculateRecommendation() {
+            const soil = document.getElementById('rec-soil').value;
+            const irrigation = document.getElementById('rec-irrigation').value;
+            const season = document.getElementById('rec-season').value;
+
+            const resultsWrapper = document.getElementById('rec-results-wrapper');
+            resultsWrapper.innerHTML = `
+                <div class="col-span-3 text-center py-6 text-gray-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-2xl text-brand-500 mb-2"></i>
+                    <p class="text-xs">جاري حساب توافق درجات الحرارة والمياه مع التربة...</p>
+                </div>
+            `;
+
+            setTimeout(() => {
+                if (soil === 'sandy') {
+                    resultsWrapper.innerHTML = `
+                        <!-- Result 1 -->
+                        <div class="border border-brand-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-brand-50/20 dark:bg-brand-900/10">
+                            <div class="absolute top-2 left-2 bg-brand-500 text-white text-[10px] px-2 py-0.5 rounded-full">نسبة ملائمة 95%</div>
+                            <h4 class="font-bold text-brand-600 dark:text-brand-300">الشعير الصحراوي</h4>
+                            <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 1.8 طن/فدان</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 12,000 ج.م / فدان</p>
+                            <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: منخفض</div>
+                        </div>
+                        <!-- Result 2 -->
+                        <div class="border border-gray-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-white dark:bg-brand-900/10">
+                            <div class="absolute top-2 left-2 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full">نسبة ملائمة 88%</div>
+                            <h4 class="font-bold text-amber-600">الفول السوداني</h4>
+                            <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 1.4 طن/فدان</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 28,000 ج.م / فدان</p>
+                            <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: متوسط</div>
+                        </div>
+                        <!-- Result 3 -->
+                        <div class="border border-gray-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-white dark:bg-brand-900/10">
+                            <div class="absolute top-2 left-2 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full">نسبة ملائمة 82%</div>
+                            <h4 class="font-bold text-emerald-600">الزيتون</h4>
+                            <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 4 طن/فدان</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 32,000 ج.م / فدان</p>
+                            <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: منخفض</div>
+                        </div>
+                    `;
+                } else {
+                    resultsWrapper.innerHTML = `
+                        <!-- Result 1 -->
+                        <div class="border border-brand-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-brand-50/20 dark:bg-brand-900/10">
+                            <div class="absolute top-2 left-2 bg-brand-500 text-white text-[10px] px-2 py-0.5 rounded-full">نسبة ملائمة 94%</div>
+                            <h4 class="font-bold text-brand-600 dark:text-brand-300">القمح (مصر 3)</h4>
+                            <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 2.8 طن/فدان</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 22,000 ج.م / فدان</p>
+                            <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: منخفض</div>
+                        </div>
+                        <!-- Result 2 -->
+                        <div class="border border-gray-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-white dark:bg-brand-900/10">
+                            <div class="absolute top-2 left-2 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full">نسبة ملائمة 86%</div>
+                            <h4 class="font-bold text-amber-600">الفول البلدي</h4>
+                            <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 1.5 طن/فدان</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 18,500 ج.م / فدان</p>
+                            <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: متوسط</div>
+                        </div>
+                        <!-- Result 3 -->
+                        <div class="border border-gray-100 dark:border-brand-900/60 p-4 rounded-xl relative overflow-hidden bg-white dark:bg-brand-900/10">
+                            <div class="absolute top-2 left-2 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full">نسبة ملائمة 81%</div>
+                            <h4 class="font-bold text-emerald-600">بنجر السكر</h4>
+                            <p class="text-xs text-gray-500 mt-2">إنتاجية متوقعة: 22 طن/فدان</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">أرباح متوقعة: 16,000 ج.م / فدان</p>
+                            <div class="mt-3 text-[10px] text-gray-400">مستوى المخاطرة: منخفض</div>
+                        </div>
+                    `;
+                }
+                showToast("اكتملت الاقتراحات", "تم التوصية بأفضل المحاصيل للتربة بنجاح");
+            }, 800);
+        }
+
+        // --- CLEAR NOTIFICATIONS ---
+        function clearAllNotifications() {
+            document.getElementById('notifications-list').innerHTML = `
+                <div class="text-center py-12 text-gray-400">
+                    <i class="fa-regular fa-bell-slash text-4xl mb-3"></i>
+                    <p class="text-xs">لا يوجد إشعارات أو تنبيهات جديدة في الوقت الحالي</p>
+                </div>
+            `;
+            showToast("تم الحذف", "تم إفراغ مركز التنبيهات");
+        }
+
+        // --- SAVE PROFILE SETTINGS ---
+        function saveUserProfile(event) {
+            event.preventDefault();
+            const newName = document.getElementById('user-settings-name').value;
+            const newRole = document.getElementById('user-settings-role').value;
+            const newPhone = document.getElementById('user-settings-phone').value;
+            const newLoc = document.getElementById('user-settings-location').value;
+
+            state.user.name = newName;
+            state.user.role = newRole;
+            state.user.phone = newPhone;
+            state.user.location = newLoc;
+
+            // Apply modifications
+            document.getElementById('welcome-message').innerHTML = `<span>مرحباً بك، ${newName}</span><span class="wave">👋</span>`;
+            document.getElementById('sidebar-user-name').innerText = newName;
+            document.getElementById('sidebar-user-role').innerText = newRole === 'owner' ? 'صاحب مزرعة' : 'مزارع معتمد';
+
+            showToast("تم الحفظ", "تم تعديل ملفك الشخصي بالكامل بنجاح");
+        }
+    </script>
+</body>
+
+</html>
